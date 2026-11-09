@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "niv.music-plan/1",
+  "stage": "draft",
+  "operation": "prompt-generate",
+  "secondaryOperations": [],
+  "capabilities": {
+    "analysis": [],
+    "generation": {
+      "status": "unconfigured",
+      "adapter": null
+    },
+    "originality": {
+      "status": "unavailable",
+      "tool": null
+    }
+  },
+  "source": {
+    "nivPath": null,
+    "audioPath": null,
+    "rights": "owned",
+    "voiceConsent": null
+  },
+  "intent": {
+    "prompt": "Create an original cinematic composition with a controlled energy rise and a memorable but non-derivative motif.",
+    "preserve": [],
+    "change": [],
+    "exclude": [
+      "copied melody",
+      "identifiable performer imitation",
+      "unintended clipping"
+    ]
+  },
+  "musicalProfile": {
+    "durationSeconds": 180,
+    "sampleRate": 48000,
+    "channels": 2,
+    "tempo": {
+      "bpm": 100,
+      "confidence": 1
+    },
+    "meter": "4/4",
+    "tonality": {
+      "tonic": "D",
+      "mode": "minor",
+      "tuningHz": 440,
+      "confidence": 1
+    },
+    "sections": [
+      {
+        "label": "intro",
+        "startSeconds": 0,
+        "endSeconds": 30,
+        "energy": 0.25,
+        "confidence": 1
+      },
+      {
+        "label": "development",
+        "startSeconds": 30,
+        "endSeconds": 120,
+        "energy": 0.65,
+        "confidence": 1
+      },
+      {
+        "label": "finale",
+        "startSeconds": 120,
+        "endSeconds": 180,
+        "energy": 0.95,
+        "confidence": 1
+      }
+    ],
+    "instruments": [
+      {
+        "canonicalId": "hs:321.322",
+        "canonicalName": "bowed string ensemble",
+        "family": "chordophone",
+        "role": "harmonic-and-rhythmic-foundation",
+        "techniques": [
+          "sustained",
+          "ostinato"
+        ],
+        "confidence": 1,
+        "evidence": [
+          "explicit-composition-intent"
+        ]
+      }
+    ],
+    "unknownSounds": [],
+    "soundEvents": [],
+    "energyArc": [
+      0.2,
+      0.45,
+      0.7,
+      1
+    ]
+  },
+  "generation": {
+    "provider": "configure-before-generation",
+    "model": "configure-before-generation",
+    "candidateCount": 4,
+    "seedPolicy": "record-when-supported",
+    "outputStems": true,
+    "providerParameters": {}
+  },
+  "output": {
+    "nivPath": "output/generated.niv",
+    "audioFormat": "flac",
+    "audioPath": "output/generated.flac",
+    "stemsDirectory": "output/stems",
+    "videoPath": null
+  },
+  "quality": {
+    "rejectOnFailure": true,
+    "maxTruePeakDbtp": -1,
+    "targetIntegratedLufs": null,
+    "durationToleranceSeconds": 0.05,
+    "requiredGates": [
+      "finite-samples",
+      "no-unintended-clipping",
+      "true-peak",
+      "duration-and-structure",
+      "originality-review",
+      "container-integrity",
+      "decode-roundtrip"
+    ]
+  }
+}

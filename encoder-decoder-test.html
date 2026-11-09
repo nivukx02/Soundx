@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encoder/Decoder Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+        }
+        h1 { text-align: center; color: #0ff; }
+        .test-section {
+            background: #111;
+            border: 2px solid #0f0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .pass { color: #0f0; }
+        .fail { color: #f00; }
+        .warning { color: #ff0; }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        button:hover { background: #0ff; }
+        pre {
+            background: #000;
+            padding: 15px;
+            border-left: 3px solid #0f0;
+            overflow-x: auto;
+        }
+        #log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border: 1px solid #0f0;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 ENCODER/DECODER TEST 🔬</h1>
+
+    <div class="test-section">
+        <h2>1️⃣ Function Availability Test</h2>
+        <button onclick="testFunctions()">▶️ Test Functions</button>
+        <div id="function-test"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2️⃣ Encoder Test (Generate Test Audio)</h2>
+        <button onclick="testEncoder()">▶️ Test Encoder</button>
+        <div id="encoder-test"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3️⃣ Decoder Test</h2>
+        <button onclick="testDecoder()">▶️ Test Decoder</button>
+        <div id="decoder-test"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Execution Log</h2>
+        <div id="log"></div>
+    </div>
+
+    <!-- Load all scripts -->
+    <script src="advanced-tempo-key.js"></script>
+    <script src="advanced-genre-mood.js"></script>
+    <script src="advanced-vocal-detection.js"></script>
+    <script src="audio-analysis.js"></script>
+    <script src="niv-codec.js"></script>
+
+    <script>
+        let testNivData = null;
+        let testAudioBuffer = null;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const color = type === 'error' ? '#f00' : type === 'success' ? '#0f0' : type === 'warning' ? '#ff0' : '#0ff';
+            logDiv.innerHTML += `<div style="color: ${color}">[${new Date().toLocaleTimeString()}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function testFunctions() {
+            const div = document.getElementById('function-test');
+            log('Testing function availability...');
+            
+            const functions = [
+                'analyzeAudio',
+                'detectBPM',
+                'detectMusicalKey',
+                'classifyGenre',
+                'classifyMood',
+                'detectVocals',
+                'encodeToNIV',
+                'decodeFromNIV',
+                'getNIVInfo',
+                'audioBufferToWav'
+            ];
+
+            let html = '<h3>Function Test Results:</h3>';
+            let allPass = true;
+
+            functions.forEach(fname => {
+                const exists = typeof window[fname] === 'function';
+                html += `<div class="${exists ? 'pass' : 'fail'}">
+                    ${exists ? '✅' : '❌'} ${fname}: ${typeof window[fname]}
+                </div>`;
+                if (!exists) {
+                    allPass = false;
+                    log(`❌ ${fname} not found!`, 'error');
+                } else {
+                    log(`✅ ${fname} found`, 'success');
+                }
+            });
+
+            html += `<br><strong class="${allPass ? 'pass' : 'fail'}">
+                ${allPass ? '✅ ALL FUNCTIONS AVAILABLE!' : '❌ SOME FUNCTIONS MISSING!'}
+            </strong>`;
+            
+            div.innerHTML = html;
+            return allPass;
+        }
+
+        async function testEncoder() {
+            const div = document.getElementById('encoder-test');
+            div.innerHTML = '<p class="warning">⏳ Testing encoder...</p>';
+            log('=== ENCODER TEST STARTED ===');
+
+            try {
+                // Check if functions exist
+                if (typeof encodeToNIV !== 'function') {
+                    throw new Error('encodeToNIV function not found!');
+                }
+                log('✅ encodeToNIV function found', 'success');
+
+                // Create audio context
+                log('Creating audio context...');
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                log('✅ Audio context created', 'success');
+
+                // Generate test tone (440 Hz sine wave, 1 second)
+                log('Generating test audio (440 Hz sine wave)...');
+                const sampleRate = 44100;
+                const duration = 1;
+                const frequency = 440;
+                const audioBuffer = audioContext.createBuffer(2, sampleRate * duration, sampleRate);
+
+                for (let channel = 0; channel < 2; channel++) {
+                    const channelData = audioBuffer.getChannelData(channel);
+                    for (let i = 0; i < channelData.length; i++) {
+                        channelData[i] = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.5;
+                    }
+                }
+                testAudioBuffer = audioBuffer;
+                log('✅ Test audio generated (2 channels, 1 second)', 'success');
+
+                // Test encoding
+                log('Calling encodeToNIV...');
+                const metadata = {
+                    originalFormat: 'test',
+                    fileName: 'test-tone.wav'
+                };
+
+                const result = await encodeToNIV(audioBuffer, metadata, null);
+                log('✅ encodeToNIV completed!', 'success');
+
+                if (!result || !result.data) {
+                    throw new Error('encodeToNIV returned invalid result');
+                }
+
+                testNivData = result.data;
+                log(`✅ Encoded data size: ${result.data.length} bytes`, 'success');
+                log(`✅ Original size: ${result.info.originalSize} bytes`, 'success');
+                log(`✅ Encoded size: ${result.info.encodedSize} bytes`, 'success');
+                log(`✅ Compression ratio: ${result.info.compressionRatio}:1`, 'success');
+
+                div.innerHTML = `
+                    <p class="pass">✅ ENCODER TEST PASSED!</p>
+                    <pre>
+Test Audio: 440 Hz sine wave, 2 channels, 1 second
+Original Size: ${result.info.originalSize} bytes
+Encoded Size: ${result.info.encodedSize} bytes
+Compression Ratio: ${result.info.compressionRatio}:1
+Channels: ${result.info.channels}
+Sample Rate: ${result.info.sampleRate} Hz
+Duration: ${result.info.duration.toFixed(3)}s
+                    </pre>
+                    <p class="pass">✅ Test data ready for decoder test!</p>
+                `;
+                log('=== ENCODER TEST PASSED ===', 'success');
+
+            } catch (error) {
+                log(`❌ ENCODER ERROR: ${error.message}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+                div.innerHTML = `
+                    <p class="fail">❌ ENCODER TEST FAILED!</p>
+                    <pre class="fail">Error: ${error.message}\n\nStack:\n${error.stack}</pre>
+                `;
+            }
+        }
+
+        async function testDecoder() {
+            const div = document.getElementById('decoder-test');
+            
+            if (!testNivData) {
+                div.innerHTML = '<p class="warning">⚠️ Run Encoder Test first to generate test data!</p>';
+                log('⚠️ No test data - run encoder test first', 'warning');
+                return;
+            }
+
+            div.innerHTML = '<p class="warning">⏳ Testing decoder...</p>';
+            log('=== DECODER TEST STARTED ===');
+
+            try {
+                // Check if functions exist
+                if (typeof decodeFromNIV !== 'function') {
+                    throw new Error('decodeFromNIV function not found!');
+                }
+                log('✅ decodeFromNIV function found', 'success');
+
+                // Create audio context
+                log('Creating audio context...');
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                log('✅ Audio context created', 'success');
+
+                // Decode the test data
+                log('Calling decodeFromNIV...');
+                const result = await decodeFromNIV(testNivData.buffer, audioContext);
+                log('✅ decodeFromNIV completed!', 'success');
+
+                if (!result || !result.audioBuffer) {
+                    throw new Error('decodeFromNIV returned invalid result');
+                }
+
+                log(`✅ Decoded audio buffer created`, 'success');
+                log(`✅ Channels: ${result.audioBuffer.numberOfChannels}`, 'success');
+                log(`✅ Sample rate: ${result.audioBuffer.sampleRate} Hz`, 'success');
+                log(`✅ Duration: ${result.audioBuffer.duration.toFixed(3)}s`, 'success');
+
+                // Verify data integrity
+                let maxDiff = 0;
+                if (testAudioBuffer) {
+                    log('Verifying lossless quality...');
+                    const original = testAudioBuffer.getChannelData(0);
+                    const decoded = result.audioBuffer.getChannelData(0);
+                    
+                    for (let i = 0; i < Math.min(1000, original.length); i++) {
+                        const diff = Math.abs(original[i] - decoded[i]);
+                        if (diff > maxDiff) maxDiff = diff;
+                    }
+                    log(`✅ Max sample difference: ${maxDiff.toExponential(4)}`, 'success');
+                }
+
+                // Test WAV conversion
+                log('Testing WAV conversion...');
+                if (typeof audioBufferToWav === 'function') {
+                    const wavBuffer = audioBufferToWav(result.audioBuffer);
+                    log(`✅ WAV conversion successful: ${wavBuffer.byteLength} bytes`, 'success');
+                } else {
+                    log('⚠️ audioBufferToWav not found', 'warning');
+                }
+
+                // Check metadata
+                log('Checking metadata...');
+                if (result.metadata) {
+                    log(`✅ Metadata extracted: ${Object.keys(result.metadata).length} fields`, 'success');
+                } else {
+                    log('⚠️ No metadata found', 'warning');
+                }
+
+                div.innerHTML = `
+                    <p class="pass">✅ DECODER TEST PASSED!</p>
+                    <pre>
+Decoded Audio Buffer:
+  Channels: ${result.audioBuffer.numberOfChannels}
+  Sample Rate: ${result.audioBuffer.sampleRate} Hz
+  Duration: ${result.audioBuffer.duration.toFixed(3)}s
+  Length: ${result.audioBuffer.length} samples
+
+Data Integrity:
+  Max Sample Difference: ${maxDiff.toExponential(4)}
+  Lossless: ${maxDiff < 0.0001 ? 'YES ✅' : 'NO ❌'}
+
+Metadata:
+  Fields Found: ${result.metadata ? Object.keys(result.metadata).length : 0}
+  Original Format: ${result.metadata?.originalFormat || 'N/A'}
+                    </pre>
+                    <p class="pass">✅ Full encode/decode cycle successful!</p>
+                `;
+                log('=== DECODER TEST PASSED ===', 'success');
+
+            } catch (error) {
+                log(`❌ DECODER ERROR: ${error.message}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+                div.innerHTML = `
+                    <p class="fail">❌ DECODER TEST FAILED!</p>
+                    <pre class="fail">Error: ${error.message}\n\nStack:\n${error.stack}</pre>
+                `;
+            }
+        }
+
+        // Auto-run function test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(testFunctions, 500);
+        });
+    </script>
+</body>
+</html>

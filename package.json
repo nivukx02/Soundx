@@ -1,0 +1,50 @@
+{
+  "name": "niv-audio-codec",
+  "version": "2.0.0",
+  "description": "Lossless NIV audio codec with a strict provider-backed AI music generation pipeline",
+  "main": "index.js",
+  "bin": {
+    "niv": "./cli.js",
+    "niv-ai": "./ai-cli.js"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "ai-cli.js",
+    "cli.js",
+    "index.js",
+    "encoder.js",
+    "decoder.js",
+    "audioProcessor.js",
+    "src/",
+    "niv-elite-music-ai/",
+    "README.md",
+    "AI-MUSIC.md",
+    ".env.example"
+  ],
+  "scripts": {
+    "start": "node cli.js",
+    "ai": "node ai-cli.js",
+    "test": "node test.js && node --test --test-isolation=none tests/elite-pipeline.test.js"
+  },
+  "keywords": [
+    "audio",
+    "codec",
+    "lossless",
+    "niv",
+    "encoder",
+    "decoder"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "cli-progress": "^3.12.0"
+  }
+}

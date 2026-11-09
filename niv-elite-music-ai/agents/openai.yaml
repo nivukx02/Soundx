@@ -1,0 +1,4 @@
+interface:
+  display_name: "NIV Elite Music AI"
+  short_description: "Analyze and create professional NIV music"
+  default_prompt: "Use $niv-elite-music-ai to understand this music from its data and create an original, professionally validated NIV composition."

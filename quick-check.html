@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quick Encoder Check</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #000; color: #0f0; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        pre { background: #111; padding: 10px; border: 1px solid #0f0; }
+    </style>
+</head>
+<body>
+    <h1>Quick Encoder Check</h1>
+    <div id="output"></div>
+
+    <script src="advanced-tempo-key.js"></script>
+    <script src="advanced-genre-mood.js"></script>
+    <script src="advanced-vocal-detection.js"></script>
+    <script src="audio-analysis.js"></script>
+    <script src="niv-codec.js"></script>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        async function test() {
+            try {
+                output.innerHTML += '<div class="success">✅ Scripts loaded</div>';
+                
+                // Check functions
+                output.innerHTML += '<div>Checking functions...</div>';
+                output.innerHTML += `<div>typeof analyzeAudio: ${typeof analyzeAudio}</div>`;
+                output.innerHTML += `<div>typeof encodeToNIV: ${typeof encodeToNIV}</div>`;
+                output.innerHTML += `<div>typeof decodeFromNIV: ${typeof decodeFromNIV}</div>`;
+                
+                if (typeof encodeToNIV !== 'function') {
+                    throw new Error('encodeToNIV is not a function!');
+                }
+                
+                // Create test audio
+                output.innerHTML += '<div>Creating test audio...</div>';
+                const ctx = new AudioContext();
+                const buffer = ctx.createBuffer(2, 44100, 44100);
+                for (let ch = 0; ch < 2; ch++) {
+                    const data = buffer.getChannelData(ch);
+                    for (let i = 0; i < data.length; i++) {
+                        data[i] = Math.sin(2 * Math.PI * 440 * i / 44100) * 0.5;
+                    }
+                }
+                output.innerHTML += '<div class="success">✅ Test audio created</div>';
+                
+                // Try encoding WITHOUT analysis (skip analyzeAudio)
+                output.innerHTML += '<div>Testing encoder (no analysis)...</div>';
+                const result = await encodeToNIV(buffer, {test: true}, null);
+                output.innerHTML += '<div class="success">✅ ENCODER WORKS!</div>';
+                output.innerHTML += `<pre>Encoded size: ${result.data.length} bytes
+Compression: ${result.info.compressionRatio}:1</pre>`;
+                
+                // Try with analyzeAudio
+                if (typeof analyzeAudio === 'function') {
+                    output.innerHTML += '<div>Testing with analyzeAudio...</div>';
+                    const analysis = await analyzeAudio(buffer, null);
+                    output.innerHTML += '<div class="success">✅ analyzeAudio works!</div>';
+                    
+                    const result2 = await encodeToNIV(buffer, {test: true}, analysis);
+                    output.innerHTML += '<div class="success">✅ ENCODER WITH ANALYSIS WORKS!</div>';
+                } else {
+                    output.innerHTML += '<div class="error">❌ analyzeAudio not found</div>';
+                }
+                
+            } catch (error) {
+                output.innerHTML += `<div class="error">❌ ERROR: ${error.message}</div>`;
+                output.innerHTML += `<pre class="error">${error.stack}</pre>`;
+            }
+        }
+        
+        setTimeout(test, 1000);
+    </script>
+</body>
+</html>

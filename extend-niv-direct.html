@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIV Direct Extender - 2.5 Minutes</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+            margin-bottom: 30px;
+        }
+        .upload-area:hover {
+            background: #e7f1ff;
+            border-color: #764ba2;
+        }
+        .upload-area.dragover {
+            background: #e7f1ff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+        .upload-area input {
+            display: none;
+        }
+        .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        .process-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s;
+            display: none;
+        }
+        .process-btn.show {
+            display: block;
+        }
+        .process-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+        }
+        .process-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            display: none;
+        }
+        .info-box.show {
+            display: block;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .value {
+            color: #6c757d;
+            text-align: right;
+        }
+        .progress-container {
+            display: none;
+            margin: 30px 0;
+        }
+        .progress-container.show {
+            display: block;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 35px;
+            background: #e9ecef;
+            border-radius: 17px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1em;
+        }
+        .progress-text {
+            text-align: center;
+            margin-top: 12px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+        .result-box {
+            display: none;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+        .result-box.show {
+            display: block;
+        }
+        .result-box.success {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+        }
+        .result-box.error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+        }
+        .result-box h3 {
+            margin: 0 0 20px 0;
+        }
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
+        }
+        .feature-tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 3px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 NIV Audio Extender</h1>
+        <p class="subtitle">Extend your audio to 2.5 minutes directly from .NIV file</p>
+
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('nivFile').click()">
+            <input type="file" id="nivFile" accept=".niv" onchange="handleFile(this.files[0])">
+            <div class="icon">📦</div>
+            <div style="font-size: 1.3em; color: #495057; margin-bottom: 12px; font-weight: 600;">
+                Drop your .NIV file here
+            </div>
+            <div style="color: #6c757d; font-size: 1.05em;">
+                or click to browse
+            </div>
+        </div>
+
+        <div id="fileInfo" class="info-box">
+            <h3 style="color: #667eea; margin-bottom: 18px;">📊 Current Audio Info</h3>
+            <div class="info-row">
+                <span class="label">File Name:</span>
+                <span class="value" id="fileName">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Current Duration:</span>
+                <span class="value" id="currentDuration">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Target Duration:</span>
+                <span class="value" style="color: #28a745; font-weight: 700;">2 minutes 30 seconds (150s)</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Channels:</span>
+                <span class="value" id="channels">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Sample Rate:</span>
+                <span class="value" id="sampleRate">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">File Size:</span>
+                <span class="value" id="fileSize">-</span>
+            </div>
+        </div>
+
+        <button id="processBtn" class="process-btn" onclick="processExtension()">
+            🚀 Extend to 2.5 Minutes & Re-encode
+        </button>
+
+        <div id="progressContainer" class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <div class="progress-text" id="progressText">Initializing...</div>
+        </div>
+
+        <div id="resultBox" class="result-box"></div>
+    </div>
+
+    <!-- Load all required scripts -->
+    <script src="advanced-tempo-key.js"></script>
+    <script src="advanced-genre-mood.js"></script>
+    <script src="advanced-vocal-detection.js"></script>
+    <script src="audio-analysis.js"></script>
+    <script src="niv-codec.js"></script>
+
+    <script>
+        let currentFile = null;
+        let audioBuffer = null;
+        let metadata = null;
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')} (${seconds.toFixed(1)}s)`;
+        }
+
+        async function handleFile(file) {
+            if (!file) return;
+
+            currentFile = file;
+            hideResult();
+
+            try {
+                updateProgress(10, 'Reading .NIV file...');
+
+                const arrayBuffer = await file.arrayBuffer();
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Decode the .NIV file
+                updateProgress(30, 'Decoding audio data...');
+                const decoded = await decodeFromNIV(arrayBuffer, audioContext);
+                
+                audioBuffer = decoded.audioBuffer;
+                metadata = decoded.metadata;
+
+                // Display file info
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('currentDuration').textContent = formatDuration(audioBuffer.duration);
+                document.getElementById('channels').textContent = audioBuffer.numberOfChannels;
+                document.getElementById('sampleRate').textContent = audioBuffer.sampleRate + ' Hz';
+                document.getElementById('fileSize').textContent = formatBytes(file.size);
+
+                document.getElementById('fileInfo').classList.add('show');
+                document.getElementById('processBtn').classList.add('show');
+                
+                updateProgress(100, 'Ready to extend!');
+                setTimeout(() => {
+                    document.getElementById('progressContainer').classList.remove('show');
+                }, 1000);
+
+            } catch (error) {
+                showError('Failed to read .NIV file: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        async function processExtension() {
+            if (!audioBuffer) return;
+
+            const targetDuration = 150; // 2.5 minutes
+            const currentDuration = audioBuffer.duration;
+
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('progressContainer').classList.add('show');
+            hideResult();
+
+            try {
+                // Step 1: Extend the audio
+                updateProgress(5, 'Preparing to extend audio...');
+                
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const extendedBuffer = await extendAudioToTarget(audioBuffer, targetDuration, audioContext);
+
+                updateProgress(20, 'Audio extended to 2.5 minutes!');
+
+                // Step 2: Analyze the extended audio
+                updateProgress(25, 'Starting advanced audio analysis...');
+                
+                const analysisResult = await analyzeAudio(extendedBuffer, (percent, status) => {
+                    const analysisProgress = 25 + (percent * 0.5); // 25% to 75%
+                    updateProgress(analysisProgress, status);
+                });
+
+                updateProgress(75, 'Analysis complete! Encoding to .NIV...');
+
+                // Step 3: Prepare new metadata
+                const newMetadata = {
+                    ...metadata,
+                    originalDuration: currentDuration,
+                    extendedDuration: targetDuration,
+                    extendedAt: new Date().toISOString(),
+                    sourceFile: currentFile.name,
+                    extensionMethod: 'intelligent-loop'
+                };
+
+                // Step 4: Encode to .NIV
+                updateProgress(80, 'Encoding extended audio...');
+                
+                const result = await encodeToNIV(extendedBuffer, newMetadata, analysisResult);
+
+                updateProgress(100, 'Complete!');
+
+                // Show success
+                showSuccess(currentDuration, extendedBuffer.duration, result);
+
+                // Store for download
+                window.extendedNIVData = result.data.buffer;
+                window.extendedFilename = currentFile.name.replace('.niv', '_extended_2.5min.niv');
+
+            } catch (error) {
+                showError('Extension failed: ' + error.message);
+                console.error(error);
+            } finally {
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+
+        async function extendAudioToTarget(sourceBuffer, targetDuration, audioContext) {
+            const currentDuration = sourceBuffer.duration;
+            const sampleRate = sourceBuffer.sampleRate;
+            const channels = sourceBuffer.numberOfChannels;
+            const targetSamples = Math.floor(targetDuration * sampleRate);
+            const sourceSamples = sourceBuffer.length;
+
+            // Create extended buffer
+            const extendedBuffer = audioContext.createBuffer(channels, targetSamples, sampleRate);
+
+            // Intelligent looping with crossfade
+            const fadeDuration = Math.floor(sampleRate * 0.3); // 300ms crossfade
+
+            for (let ch = 0; ch < channels; ch++) {
+                const sourceData = sourceBuffer.getChannelData(ch);
+                const extendedData = extendedBuffer.getChannelData(ch);
+
+                let writePos = 0;
+                let loopCount = 0;
+
+                while (writePos < targetSamples) {
+                    const remainingSamples = targetSamples - writePos;
+                    const samplesToWrite = Math.min(sourceSamples, remainingSamples);
+
+                    for (let i = 0; i < samplesToWrite; i++) {
+                        let sample = sourceData[i];
+
+                        // Apply crossfade at loop boundaries (except first loop)
+                        if (loopCount > 0 && i < fadeDuration) {
+                            const fadeIn = i / fadeDuration;
+                            const fadeOut = 1 - fadeIn;
+                            
+                            // Blend with tail of previous loop
+                            const prevPos = writePos - fadeDuration + i;
+                            if (prevPos >= 0) {
+                                sample = sourceData[i] * fadeIn + extendedData[prevPos] * fadeOut;
+                            }
+                        }
+
+                        extendedData[writePos + i] = sample;
+                    }
+
+                    writePos += samplesToWrite;
+                    loopCount++;
+                }
+            }
+
+            return extendedBuffer;
+        }
+
+        function updateProgress(percent, text) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressFill').textContent = Math.round(percent) + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function showSuccess(originalDuration, newDuration, encodeResult) {
+            const resultBox = document.getElementById('resultBox');
+            resultBox.className = 'result-box show success';
+            resultBox.innerHTML = `
+                <h3 style="color: #155724; margin-bottom: 20px;">✅ Extension Complete!</h3>
+                
+                <div style="margin: 20px 0;">
+                    <span class="feature-tag">🎼 Full Analysis</span>
+                    <span class="feature-tag">🎵 BPM Detected</span>
+                    <span class="feature-tag">🎹 Key Detected</span>
+                    <span class="feature-tag">🎸 Instruments</span>
+                    <span class="feature-tag">😊 Mood</span>
+                    <span class="feature-tag">🎭 Genre</span>
+                    <span class="feature-tag">🎤 Vocals</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Original Duration:</span>
+                    <span class="value">${formatDuration(originalDuration)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Extended Duration:</span>
+                    <span class="value" style="color: #28a745; font-weight: 700;">${formatDuration(newDuration)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">New File Size:</span>
+                    <span class="value">${formatBytes(encodeResult.info.encodedSize)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Compression Ratio:</span>
+                    <span class="value">${encodeResult.info.compressionRatio}:1</span>
+                </div>
+                
+                <button class="download-btn" onclick="downloadExtendedFile()">
+                    📥 Download Extended .NIV File (2.5 min)
+                </button>
+            `;
+        }
+
+        function showError(message) {
+            const resultBox = document.getElementById('resultBox');
+            resultBox.className = 'result-box show error';
+            resultBox.innerHTML = `
+                <h3 style="color: #721c24; margin-bottom: 15px;">❌ Error</h3>
+                <p style="color: #721c24; margin: 0;">${message}</p>
+            `;
+            document.getElementById('progressContainer').classList.remove('show');
+        }
+
+        function hideResult() {
+            document.getElementById('resultBox').classList.remove('show');
+        }
+
+        function downloadExtendedFile() {
+            if (!window.extendedNIVData || !window.extendedFilename) return;
+
+            const blob = new Blob([window.extendedNIVData], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = window.extendedFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Drag and drop handlers
+        const uploadArea = document.getElementById('uploadArea');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.endsWith('.niv')) {
+                handleFile(files[0]);
+            } else {
+                alert('Please drop a .NIV file');
+            }
+        });
+
+        // Show progress when loading
+        document.getElementById('nivFile').addEventListener('change', function() {
+            if (this.files.length > 0) {
+                document.getElementById('progressContainer').classList.add('show');
+            }
+        });
+    </script>
+</body>
+</html>

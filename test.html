@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIV Codec Test Page</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 NIV Audio Codec - Test Page</h1>
+    
+    <div class="test-section">
+        <h2>API Compatibility Tests</h2>
+        <div id="api-tests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Codec Unit Tests</h2>
+        <button onclick="testDeltaEncoding()">Test Delta Encoding</button>
+        <button onclick="testCRC32()">Test CRC32</button>
+        <button onclick="testCompression()">Test Compression</button>
+        <div id="unit-test-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Integration Test</h2>
+        <p>Generate a test audio signal, encode it to .NIV, then decode it back.</p>
+        <button onclick="runIntegrationTest()">Run Full Integration Test</button>
+        <div id="integration-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Main App</h2>
+        <a href="index.html"><button>Open NIV Audio Codec App</button></a>
+    </div>
+
+    <script src="niv-codec.js"></script>
+    <script>
+        // API Compatibility Tests
+        function runAPITests() {
+            const results = document.getElementById('api-tests');
+            let html = '';
+            
+            // Test CompressionStream
+            const hasCompression = typeof CompressionStream !== 'undefined';
+            html += `<div class="status ${hasCompression ? 'success' : 'error'}">
+                CompressionStream: ${hasCompression ? '✓ Available' : '✗ Not Available'}
+            </div>`;
+            
+            // Test DecompressionStream
+            const hasDecompression = typeof DecompressionStream !== 'undefined';
+            html += `<div class="status ${hasDecompression ? 'success' : 'error'}">
+                DecompressionStream: ${hasDecompression ? '✓ Available' : '✗ Not Available'}
+            </div>`;
+            
+            // Test Web Audio API
+            const hasWebAudio = typeof (window.AudioContext || window.webkitAudioContext) !== 'undefined';
+            html += `<div class="status ${hasWebAudio ? 'success' : 'error'}">
+                Web Audio API: ${hasWebAudio ? '✓ Available' : '✗ Not Available'}
+            </div>`;
+            
+            // Test File API
+            const hasFileAPI = typeof FileReader !== 'undefined';
+            html += `<div class="status ${hasFileAPI ? 'success' : 'error'}">
+                File API: ${hasFileAPI ? '✓ Available' : '✗ Not Available'}
+            </div>`;
+            
+            results.innerHTML = html;
+        }
+
+        // Test Delta Encoding
+        function testDeltaEncoding() {
+            const results = document.getElementById('unit-test-results');
+            try {
+                const testData = new Int32Array([100, 102, 105, 103, 108]);
+                const encoded = deltaEncode(testData);
+                const decoded = deltaDecode(encoded);
+                
+                const match = testData.every((val, i) => val === decoded[i]);
+                
+                results.innerHTML = `
+                    <div class="status ${match ? 'success' : 'error'}">
+                        Delta Encoding: ${match ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                    <pre>Original: [${testData.join(', ')}]
+Encoded:  [${encoded.join(', ')}]
+Decoded:  [${decoded.join(', ')}]</pre>
+                `;
+            } catch (error) {
+                results.innerHTML = `<div class="status error">✗ ERROR: ${error.message}</div>`;
+            }
+        }
+
+        // Test CRC32
+        function testCRC32() {
+            const results = document.getElementById('unit-test-results');
+            try {
+                const testData = new Uint8Array([1, 2, 3, 4, 5]);
+                const checksum1 = calculateCRC32(testData);
+                const checksum2 = calculateCRC32(testData);
+                
+                const testData2 = new Uint8Array([1, 2, 3, 4, 6]);
+                const checksum3 = calculateCRC32(testData2);
+                
+                const sameForSame = checksum1 === checksum2;
+                const diffForDiff = checksum1 !== checksum3;
+                
+                results.innerHTML = `
+                    <div class="status ${sameForSame && diffForDiff ? 'success' : 'error'}">
+                        CRC32: ${sameForSame && diffForDiff ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                    <pre>Data 1 checksum: 0x${checksum1.toString(16).toUpperCase()}
+Data 2 checksum: 0x${checksum2.toString(16).toUpperCase()}
+Different data:  0x${checksum3.toString(16).toUpperCase()}</pre>
+                `;
+            } catch (error) {
+                results.innerHTML = `<div class="status error">✗ ERROR: ${error.message}</div>`;
+            }
+        }
+
+        // Test Compression
+        async function testCompression() {
+            const results = document.getElementById('unit-test-results');
+            try {
+                const testData = new Uint8Array(1000).fill(42); // Highly compressible
+                const compressed = await compressData(testData);
+                const decompressed = await decompressData(compressed);
+                
+                const match = testData.every((val, i) => val === decompressed[i]);
+                const ratio = (testData.length / compressed.length).toFixed(2);
+                
+                results.innerHTML = `
+                    <div class="status ${match ? 'success' : 'error'}">
+                        Compression: ${match ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                    <pre>Original size:    ${testData.length} bytes
+Compressed size:  ${compressed.length} bytes
+Decompressed:     ${decompressed.length} bytes
+Compression ratio: ${ratio}:1
+Data integrity:   ${match ? 'OK' : 'FAILED'}</pre>
+                `;
+            } catch (error) {
+                results.innerHTML = `<div class="status error">✗ ERROR: ${error.message}</div>`;
+            }
+        }
+
+        // Full Integration Test
+        async function runIntegrationTest() {
+            const results = document.getElementById('integration-results');
+            results.innerHTML = '<div class="status info">⏳ Running integration test...</div>';
+            
+            try {
+                // Create audio context
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Generate a test tone (440 Hz sine wave, 1 second)
+                const sampleRate = 44100;
+                const duration = 1;
+                const channels = 2;
+                const frequency = 440;
+                
+                const audioBuffer = audioContext.createBuffer(channels, sampleRate * duration, sampleRate);
+                
+                for (let channel = 0; channel < channels; channel++) {
+                    const channelData = audioBuffer.getChannelData(channel);
+                    for (let i = 0; i < channelData.length; i++) {
+                        channelData[i] = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.5;
+                    }
+                }
+                
+                // Encode to .NIV
+                const encodeResult = await encodeToNIV(audioBuffer, {
+                    originalFormat: 'test',
+                    testNote: '440 Hz sine wave'
+                });
+                
+                // Decode from .NIV
+                const decodeResult = await decodeFromNIV(encodeResult.data.buffer, audioContext);
+                
+                // Verify
+                const originalSamples = audioBuffer.getChannelData(0);
+                const decodedSamples = decodeResult.audioBuffer.getChannelData(0);
+                
+                let maxDiff = 0;
+                for (let i = 0; i < Math.min(1000, originalSamples.length); i++) {
+                    const diff = Math.abs(originalSamples[i] - decodedSamples[i]);
+                    if (diff > maxDiff) maxDiff = diff;
+                }
+                
+                const isLossless = maxDiff < 0.0001; // Floating point tolerance
+                
+                results.innerHTML = `
+                    <div class="status ${isLossless ? 'success' : 'error'}">
+                        Integration Test: ${isLossless ? '✓ PASS' : '✗ FAIL'}
+                    </div>
+                    <pre><strong>Test Audio:</strong>
+  Channels: ${channels}
+  Sample Rate: ${sampleRate} Hz
+  Duration: ${duration}s
+  Frequency: ${frequency} Hz
+
+<strong>Encoding:</strong>
+  Original Size: ${encodeResult.info.originalSize} bytes
+  Encoded Size: ${encodeResult.info.encodedSize} bytes
+  Compression Ratio: ${encodeResult.info.compressionRatio}:1
+
+<strong>Decoding:</strong>
+  Channels: ${decodeResult.info.channels}
+  Sample Rate: ${decodeResult.info.sampleRate} Hz
+  Duration: ${decodeResult.info.duration.toFixed(3)}s
+
+<strong>Verification:</strong>
+  Max Sample Difference: ${maxDiff.toExponential(4)}
+  Lossless: ${isLossless ? 'YES ✓' : 'NO ✗'}</pre>
+                `;
+                
+            } catch (error) {
+                results.innerHTML = `<div class="status error">✗ ERROR: ${error.message}</div><pre>${error.stack}</pre>`;
+            }
+        }
+
+        // Run API tests on load
+        window.addEventListener('DOMContentLoaded', runAPITests);
+    </script>
+</body>
+</html>

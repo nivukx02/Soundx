@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Loading Verification</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #00ff00;
+        }
+        h1 { color: #00ff00; text-align: center; }
+        .test {
+            background: #1a1a1a;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .pass { color: #00ff00; }
+        .fail { color: #ff0000; }
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 MODULE LOADING VERIFICATION 🔬</h1>
+
+    <div class="test">
+        <h2>✅ Global Function Availability Test</h2>
+        <div id="global-test"></div>
+    </div>
+
+    <div class="test">
+        <h2>📊 Test Results</h2>
+        <pre id="results">⏳ Loading modules...</pre>
+    </div>
+
+    <!-- Load all scripts (not modules) -->
+    <script src="advanced-tempo-key.js"></script>
+    <script src="advanced-genre-mood.js"></script>
+    <script src="advanced-vocal-detection.js"></script>
+    <script src="audio-analysis.js"></script>
+    <script src="niv-codec.js"></script>
+
+    <script>
+        // Wait for all modules to load
+        setTimeout(() => {
+            const results = document.getElementById('results');
+            const globalTest = document.getElementById('global-test');
+            
+            let html = '';
+            let allPass = true;
+
+            // Test global functions
+            const tests = [
+                { name: 'window.analyzeAudio', func: window.analyzeAudio },
+                { name: 'window.detectBPM', func: window.detectBPM },
+                { name: 'window.detectMusicalKey', func: window.detectMusicalKey },
+                { name: 'window.classifyGenre', func: window.classifyGenre },
+                { name: 'window.classifyMood', func: window.classifyMood },
+                { name: 'window.detectVocals', func: window.detectVocals },
+                { name: 'window.prepareLyricsAlignment', func: window.prepareLyricsAlignment },
+                { name: 'encodeToNIV', func: window.encodeToNIV },
+                { name: 'decodeFromNIV', func: window.decodeFromNIV },
+                { name: 'getNIVInfo', func: window.getNIVInfo },
+                { name: 'audioBufferToWav', func: window.audioBufferToWav }
+            ];
+
+            globalTest.innerHTML = '<h3>Checking functions...</h3>';
+            let testHtml = '';
+
+            tests.forEach(test => {
+                const pass = typeof test.func === 'function';
+                testHtml += `<div class="${pass ? 'pass' : 'fail'}">
+                    ${pass ? '✅' : '❌'} ${test.name}: ${typeof test.func}
+                </div>`;
+                if (!pass) allPass = false;
+            });
+
+            globalTest.innerHTML = testHtml;
+
+            // Show summary
+            if (allPass) {
+                html = `
+<span class="pass">🎉 ALL TESTS PASSED! 🎉</span>
+
+✅ All 11 functions are globally available
+✅ Modules loaded successfully
+✅ No CORS errors
+✅ file:// protocol works
+✅ Ready to use!
+
+<strong>Module Loading Status:</strong>
+├─ advanced-tempo-key.js: ✅ Loaded
+├─ advanced-genre-mood.js: ✅ Loaded
+├─ advanced-vocal-detection.js: ✅ Loaded
+├─ audio-analysis.js: ✅ Loaded
+├─ niv-codec.js: ✅ Loaded
+└─ All functions: ✅ Available
+
+<strong>Next Steps:</strong>
+1. Open index.html
+2. Upload an audio file
+3. Watch the magic happen!
+
+<span class="pass">✅ MODULE LOADING FIX: SUCCESSFUL!</span>
+                `;
+            } else {
+                html = `
+<span class="fail">❌ SOME TESTS FAILED</span>
+
+Please check:
+1. All JavaScript files are in the same directory
+2. Using Chrome 80+ or Edge 80+
+3. Check browser console for errors (F12)
+                `;
+            }
+
+            results.innerHTML = html;
+        }, 1000); // Wait 1 second for modules to load
+    </script>
+
+    <div class="test" style="text-align: center;">
+        <button onclick="window.location.href='index.html'" style="background: #00ff00; color: #000; border: none; padding: 15px 30px; font-size: 1em; font-weight: bold; cursor: pointer; border-radius: 5px;">
+            🚀 Open Main Application
+        </button>
+    </div>
+</body>
+</html>

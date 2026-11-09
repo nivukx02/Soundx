@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIV Audio Codec - Web Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+            font-size: 1em;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            color: #667eea;
+            background: white;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            background: #e7f1ff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .file-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .file-info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .file-info-value {
+            color: #6c757d;
+        }
+
+        .options {
+            margin: 20px 0;
+        }
+
+        .option-group {
+            margin-bottom: 20px;
+        }
+
+        .option-label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .result {
+            display: none;
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #155724;
+        }
+
+        .result.error .result-title {
+            color: #721c24;
+        }
+
+        .result-message {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+
+        .result.error .result-message {
+            color: #721c24;
+        }
+
+        .download-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .audio-formats {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 NIV Audio Codec</h1>
+            <p>Lossless Audio Compression for the Web</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('encode', event)">Encode to .NIV</button>
+            <button class="tab" onclick="switchTab('decode', event)">Decode from .NIV</button>
+            <button class="tab" onclick="switchTab('info', event)">File Info</button>
+        </div>
+
+        <!-- Encode Tab -->
+        <div id="encode-tab" class="tab-content active">
+            <div class="upload-area" onclick="document.getElementById('encode-file').click()">
+                <input type="file" id="encode-file" accept="audio/*" onchange="handleEncodeFile(this.files[0])">
+                <div class="upload-icon">🎵</div>
+                <div class="upload-text">Click or drag audio file here</div>
+                <div class="upload-hint">Supports: MP3, WAV, FLAC, M4A, OGG, and more</div>
+            </div>
+
+            <div id="encode-info" class="file-info">
+                <div class="file-info-row">
+                    <span class="file-info-label">File Name:</span>
+                    <span class="file-info-value" id="encode-filename">-</span>
+                </div>
+                <div class="file-info-row">
+                    <span class="file-info-label">Size:</span>
+                    <span class="file-info-value" id="encode-size">-</span>
+                </div>
+                <div class="file-info-row">
+                    <span class="file-info-label">Duration:</span>
+                    <span class="file-info-value" id="encode-duration">-</span>
+                </div>
+                <div class="file-info-row">
+                    <span class="file-info-label">Channels:</span>
+                    <span class="file-info-value" id="encode-channels">-</span>
+                </div>
+                <div class="file-info-row">
+                    <span class="file-info-label">Sample Rate:</span>
+                    <span class="file-info-value" id="encode-samplerate">-</span>
+                </div>
+            </div>
+
+            <div class="progress-container" id="encode-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="encode-progress-fill">0%</div>
+                </div>
+                <div class="progress-text" id="encode-progress-text">Processing...</div>
+            </div>
+
+            <button class="button" id="encode-button" onclick="processEncode()" disabled>
+                Encode to .NIV Format
+            </button>
+
+            <div id="encode-result" class="result"></div>
+        </div>
+
+        <!-- Decode Tab -->
+        <div id="decode-tab" class="tab-content">
+            <div class="upload-area" onclick="document.getElementById('decode-file').click()">
+                <input type="file" id="decode-file" accept=".niv" onchange="handleDecodeFile(this.files[0])">
+                <div class="upload-icon">📦</div>
+                <div class="upload-text">Click or drag .NIV file here</div>
+                <div class="upload-hint">Select a .NIV file to decode</div>
+            </div>
+
+            <div id="decode-info" class="file-info">
+                <div class="file-info-row">
+                    <span class="file-info-label">File Name:</span>
+                    <span class="file-info-value" id="decode-filename">-</span>
+                </div>
+                <div class="file-info-row">
+                    <span class="file-info-label">Channels:</span>
+                    <span class="file-info-value" id="decode-channels">-</span>
+                </div>
+                <div class="file-info-row">
+                    <span class="file-info-label">Sample Rate:</span>
+                    <span class="file-info-value" id="decode-samplerate">-</span>
+                </div>
+                <div class="file-info-row">
+                    <span class="file-info-label">Bit Depth:</span>
+                    <span class="file-info-value" id="decode-bitdepth">-</span>
+                </div>
+            </div>
+
+            <div class="options">
+                <div class="option-group">
+                    <label class="option-label">Output Format:</label>
+                    <select id="decode-format">
+                        <option value="wav">WAV (Lossless)</option>
+                        <option value="flac">FLAC (Lossless - Coming Soon)</option>
+                        <option value="mp3">MP3 (Lossy - Coming Soon)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="progress-container" id="decode-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="decode-progress-fill">0%</div>
+                </div>
+                <div class="progress-text" id="decode-progress-text">Processing...</div>
+            </div>
+
+            <button class="button" id="decode-button" onclick="processDecode()" disabled>
+                Decode to Audio
+            </button>
+
+            <div id="decode-result" class="result"></div>
+        </div>
+
+        <!-- Info Tab -->
+        <div id="info-tab" class="tab-content">
+            <div class="upload-area" onclick="document.getElementById('info-file').click()">
+                <input type="file" id="info-file" accept=".niv" onchange="handleInfoFile(this.files[0])">
+                <div class="upload-icon">ℹ️</div>
+                <div class="upload-text">Click or drag .NIV file here</div>
+                <div class="upload-hint">View detailed information about a .NIV file</div>
+            </div>
+
+            <div id="info-details" class="file-info"></div>
+            <div id="info-result" class="result"></div>
+        </div>
+    </div>
+
+    <!-- Load all scripts (dependency order matters) -->
+    <script src="advanced-tempo-key.js"></script>
+    <script src="advanced-genre-mood.js"></script>
+    <script src="advanced-vocal-detection.js"></script>
+    <script src="audio-analysis.js"></script>
+    <script src="niv-codec.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
